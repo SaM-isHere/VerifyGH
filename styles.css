@@ -141,13 +141,6 @@ button:focus-visible, input:focus-visible { outline: 3px solid #7cbb91; outline-
 .confirm-check input:checked + .custom-check svg { opacity: 1; }
 .confirm-check input:focus-visible + .custom-check { outline: 3px solid #7cbb91; outline-offset: 3px; }
 .payment-submit { justify-self: start; min-width: 220px; min-height: 43px; }
-.payment-complete { display: flex; align-items: flex-start; gap: 13px; margin-top: 25px; padding: 17px; border: 1px solid #dce9dc; border-radius: 8px; background: #f3f8f1; }
-.complete-icon { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 10px; color: var(--green); background: #e2f0e2; }
-.complete-icon svg { width: 18px; height: 18px; }
-.payment-complete > div { display: grid; gap: 5px; }
-.payment-complete strong { color: var(--green-deep); font-size: 12px; }
-.payment-complete p { margin: 0; color: #718075; font-size: 10px; line-height: 1.6; }
-.payment-complete p strong { font-size: inherit; }
 .panel-security { display: flex; align-items: center; gap: 6px; margin: 21px 0 0; color: #87948a; font-size: 9px; }
 .panel-security svg { width: 13px; height: 13px; color: var(--green); }
 .month-aside { display: flex; flex-direction: column; gap: 12px; }
@@ -177,7 +170,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid #7cbb91; outline-
 .month-navigation > span { min-width: 125px; color: var(--ink); font: 700 12px var(--font-display); text-align: center; }
 .ledger-summary { display: flex; justify-content: space-between; align-items: center; padding: 11px 27px; border-top: 1px solid #edf0eb; border-bottom: 1px solid #edf0eb; background: #f9faf7; }
 .ledger-summary > span { display: inline-flex; align-items: center; gap: 8px; color: #637267; font-size: 10px; font-weight: 600; }
-.ledger-summary strong { color: #89948b; font-size: 9px; letter-spacing: .8px; }
+.ledger-summary > span > strong { color: #637267; font-size: 9px; letter-spacing: .8px; }
+.ledger-summary .ledger-month-total { display: grid; justify-items: end; gap: 3px; }
+.ledger-month-total > span { color: #89948b; font-size: 8px; font-weight: 700; letter-spacing: .8px; }
+.ledger-summary .ledger-month-total > strong { color: var(--green-deep); font: 700 14px var(--font-display); letter-spacing: 0; }
 .ledger-table-wrap { position: relative; min-height: 205px; }
 .ledger-table { width: 100%; border-collapse: collapse; text-align: left; }
 .ledger-table th { padding: 13px 18px; color: #97a198; font-size: 8px; font-weight: 700; letter-spacing: .9px; }
