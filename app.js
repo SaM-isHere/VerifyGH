@@ -9,7 +9,7 @@ import {
   signOut,
   updateProfile,
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getDatabase, onValue, push, ref } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { getDatabase, onValue, ref, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 import { createIcons, icons } from "https://cdn.jsdelivr.net/npm/lucide@0.468.0/+esm";
 import { currencyCode, firebaseConfig } from "./firebase-config.js";
 
@@ -20,7 +20,7 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 const money = new Intl.NumberFormat(undefined, { style: "currency", currency: currencyCode });
 const elements = Object.fromEntries([
-  "authView", "registerView", "authFooter", "signoutButton", "connectionLabel", "authForm", "authTitle", "authSubtitle", "authSubmit", "authMessage", "nameField", "displayName", "email", "password", "accessCode", "signinTab", "signupTab", "googleButton", "welcomeName", "currentDate", "paymentName", "paymentDate", "paymentForm", "amount", "confirmPayment", "paymentMessage", "paymentDialog", "dialogName", "dialogAmount", "dialogDate", "confirmSubmit", "cancelPayment", "monthAsideLabel", "monthTotal", "memberCount", "ledgerCount", "paymentPage", "ledgerPage", "ledgerRows", "ledgerEmpty", "ledgerLoading", "ledgerTotal", "ledgerMonthTitle", "ledgerMonthInline", "previousMonth", "nextMonth", "currencyPrefix", "year",
+  "authView", "registerView", "authFooter", "signoutButton", "connectionLabel", "authForm", "authTitle", "authSubtitle", "authSubmit", "authMessage", "nameField", "displayName", "email", "password", "accessCode", "signinTab", "signupTab", "googleButton", "welcomeName", "currentDate", "paymentName", "paymentDate", "paymentForm", "paymentComplete", "verifiedAmount", "amount", "confirmPayment", "paymentMessage", "paymentDialog", "dialogName", "dialogAmount", "dialogDate", "confirmSubmit", "cancelPayment", "monthAsideLabel", "monthTotal", "memberCount", "ledgerCount", "paymentPage", "ledgerPage", "ledgerRows", "ledgerEmpty", "ledgerLoading", "ledgerTotal", "ledgerMonthTitle", "ledgerMonthInline", "previousMonth", "nextMonth", "currencyPrefix", "year",
 ].map((key) => [key, document.getElementById(key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`))]));
 
 let isSignUp = false;
@@ -116,15 +116,34 @@ function leaveRegister() {
 }
 
 function renderLedger(payments) {
-  const rows = Object.entries(payments || {}).map(([id, payment]) => ({ id, ...payment }))
-    .filter((payment) => payment.confirmed === true && Number.isFinite(Number(payment.amount)) && Number(payment.amount) > 0)
-    .sort((a, b) => Number(b.paidAt) - Number(a.paidAt));
+  const byMember = new Map();
+  for (const [id, payment] of Object.entries(payments || {})) {
+    if (payment.confirmed !== true || !Number.isFinite(Number(payment.amount)) || Number(payment.amount) <= 0) continue;
+    const uid = payment.uid || `legacy-${id}`;
+    const prior = byMember.get(uid);
+    if (prior) {
+      prior.amount += Number(payment.amount);
+      prior.paidAt = Math.max(prior.paidAt, Number(payment.paidAt) || 0);
+      if (payment.name) prior.name = payment.name;
+    } else {
+      byMember.set(uid, { ...payment, uid, amount: Number(payment.amount), paidAt: Number(payment.paidAt) || 0 });
+    }
+  }
+  const rows = [...byMember.values()].sort((a, b) => b.paidAt - a.paidAt);
+  const totalAmount = rows.reduce((total, payment) => total + payment.amount, 0);
   elements.ledgerRows.replaceChildren();
   elements.ledgerCount.textContent = String(rows.length);
-  elements.ledgerTotal.textContent = `${rows.length} ${rows.length === 1 ? "PAYMENT" : "PAYMENTS"}`;
-  elements.monthTotal.textContent = String(rows.length);
-  elements.memberCount.textContent = `${new Set(rows.map((row) => row.uid)).size} ${rows.length === 1 ? "payment recorded" : "members paid this month"}`;
+  elements.ledgerTotal.textContent = `${rows.length} ${rows.length === 1 ? "MEMBER" : "MEMBERS"}`;
+  elements.monthTotal.textContent = money.format(totalAmount);
+  elements.memberCount.textContent = `${rows.length} ${rows.length === 1 ? "member verified" : "members verified"}`;
   elements.ledgerEmpty.classList.toggle("hidden", rows.length > 0);
+
+  if (currentUser && selectedMonth === monthKey(new Date())) {
+    const ownPayment = rows.find((payment) => payment.uid === currentUser.uid);
+    elements.paymentForm.classList.toggle("hidden", Boolean(ownPayment));
+    elements.paymentComplete.classList.toggle("hidden", !ownPayment);
+    if (ownPayment) elements.verifiedAmount.textContent = money.format(ownPayment.amount);
+  }
 
   for (const payment of rows) {
     const row = document.createElement("tr");
@@ -179,21 +198,23 @@ function listenToMonth(month) {
 async function submitPayment() {
   const amount = Number(elements.amount.value);
   if (!Number.isFinite(amount) || amount <= 0 || !elements.confirmPayment.checked) return;
+  const paidAt = Date.now();
+  const month = monthKey(new Date(paidAt));
   elements.confirmSubmit.disabled = true;
   elements.confirmSubmit.innerHTML = '<span class="loading-spinner"></span> Saving...';
   try {
-    const paidAt = Date.now();
-    await push(ref(database, `payments/${monthKey(new Date(paidAt))}`), {
-      uid: currentUser.uid,
-      name: getMemberName(),
-      amount,
-      paidAt,
-      confirmed: true,
+    const result = await runTransaction(ref(database, `payments/${month}/${currentUser.uid}`), (existing) => {
+      if (existing !== null) return;
+      return { uid: currentUser.uid, name: getMemberName(), amount, paidAt, confirmed: true };
     });
     elements.paymentDialog.close();
+    if (!result.committed) {
+      announce(elements.paymentMessage, "You already have a verified entry for this month.");
+      return;
+    }
     elements.paymentForm.reset();
-    announce(elements.paymentMessage, "Payment confirmed and added to the register.", false);
-    listenToMonth(monthKey(new Date(paidAt)));
+    announce(elements.paymentMessage, "Payment confirmed. Your monthly entry is now locked.", false);
+    listenToMonth(month);
   } catch (error) {
     elements.paymentDialog.close();
     announce(elements.paymentMessage, `Payment could not be saved: ${error.message}`);
