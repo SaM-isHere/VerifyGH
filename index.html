@@ -81,10 +81,14 @@
                   <p id="payment-message" class="form-message" aria-live="polite"></p>
                   <button id="payment-submit" class="button button-primary payment-submit" type="submit"><span>Review &amp; confirm payment</span><i data-lucide="arrow-up-right"></i></button>
                 </form>
+                <div id="payment-complete" class="payment-complete hidden" role="status">
+                  <span class="complete-icon"><i data-lucide="badge-check"></i></span>
+                  <div><strong>Monthly verification complete</strong><p>Your payment has been verified for this month. Your combined registered amount is <strong id="verified-amount"></strong>.</p></div>
+                </div>
                 <p class="panel-security"><i data-lucide="shield-check"></i> Your confirmation is recorded with the date and your account.</p>
               </section>
               <aside class="month-aside">
-                <div class="month-feature"><div class="month-feature-top"><span class="live-label"><span class="status-dot"></span> LIVE REGISTER</span><i data-lucide="activity"></i></div><span class="month-label">CURRENT MONTH</span><h2 id="month-aside-label">This month</h2><div class="month-stat"><strong id="month-total">0</strong><span>verified payments</span></div><div class="month-rule"></div><div class="month-footer"><i data-lucide="users-round"></i><span id="member-count">Community register</span></div></div>
+                <div class="month-feature"><div class="month-feature-top"><span class="live-label"><span class="status-dot"></span> LIVE REGISTER</span><i data-lucide="activity"></i></div><span class="month-label">CURRENT MONTH</span><h2 id="month-aside-label">This month</h2><div class="month-stat"><strong id="month-total">KES 0.00</strong><span>total verified</span></div><div class="month-rule"></div><div class="month-footer"><i data-lucide="users-round"></i><span id="member-count">Community register</span></div></div>
                 <div class="aside-note"><i data-lucide="info"></i><p>Only confirmed payments appear in the shared register. Check the amount before submitting.</p></div>
               </aside>
             </div>
