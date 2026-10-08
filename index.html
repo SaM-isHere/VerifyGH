@@ -81,14 +81,10 @@
                   <p id="payment-message" class="form-message" aria-live="polite"></p>
                   <button id="payment-submit" class="button button-primary payment-submit" type="submit"><span>Review &amp; confirm payment</span><i data-lucide="arrow-up-right"></i></button>
                 </form>
-                <div id="payment-complete" class="payment-complete hidden" role="status">
-                  <span class="complete-icon"><i data-lucide="badge-check"></i></span>
-                  <div><strong>Monthly verification complete</strong><p>Your payment has been verified for this month. Your combined registered amount is <strong id="verified-amount"></strong>.</p></div>
-                </div>
                 <p class="panel-security"><i data-lucide="shield-check"></i> Your confirmation is recorded with the date and your account.</p>
               </section>
               <aside class="month-aside">
-                <div class="month-feature"><div class="month-feature-top"><span class="live-label"><span class="status-dot"></span> LIVE REGISTER</span><i data-lucide="activity"></i></div><span class="month-label">CURRENT MONTH</span><h2 id="month-aside-label">This month</h2><div class="month-stat"><strong id="month-total">KES 0.00</strong><span>total verified</span></div><div class="month-rule"></div><div class="month-footer"><i data-lucide="users-round"></i><span id="member-count">Community register</span></div></div>
+                <div class="month-feature"><div class="month-feature-top"><span class="live-label"><span class="status-dot"></span> LIVE REGISTER</span><i data-lucide="activity"></i></div><span class="month-label">CURRENT MONTH</span><h2 id="month-aside-label">This month</h2><div class="month-stat"><strong id="month-total">0</strong><span>verified payments</span></div><div class="month-rule"></div><div class="month-footer"><i data-lucide="users-round"></i><span id="member-count">Community register</span></div></div>
                 <div class="aside-note"><i data-lucide="info"></i><p>Only confirmed payments appear in the shared register. Check the amount before submitting.</p></div>
               </aside>
             </div>
@@ -96,7 +92,7 @@
           <div id="ledger-page" class="page-content hidden">
             <section class="ledger-panel surface-panel">
               <div class="ledger-heading"><div><span class="section-index">02 / COMMUNITY</span><h2>Payment register</h2><p>Confirmed electricity token payments for <strong id="ledger-month-inline"></strong>.</p></div><div class="month-navigation"><button id="previous-month" class="icon-button" type="button" aria-label="Previous month" title="Previous month"><i data-lucide="chevron-left"></i></button><span id="ledger-month-title"></span><button id="next-month" class="icon-button" type="button" aria-label="Next month" title="Next month"><i data-lucide="chevron-right"></i></button></div></div>
-              <div class="ledger-summary"><span><span class="status-dot"></span> Verified entries</span><strong id="ledger-total">0 PAYMENTS</strong></div>
+              <div class="ledger-summary"><span><span class="status-dot"></span><strong id="ledger-total">0 MEMBERS VERIFIED</strong></span><span class="ledger-month-total"><span>TOTAL PAID THIS MONTH</span><strong id="ledger-month-amount">KES 0.00</strong></span></div>
               <div class="ledger-table-wrap"><table class="ledger-table"><thead><tr><th>COMMUNITY MEMBER</th><th>DATE &amp; TIME</th><th>AMOUNT PAID</th><th>STATUS</th></tr></thead><tbody id="ledger-rows"></tbody></table><div id="ledger-empty" class="ledger-empty hidden"><span class="empty-icon"><i data-lucide="notebook-text"></i></span><strong>No payments recorded yet</strong><span>Confirmed payments for this month will appear here.</span></div><div id="ledger-loading" class="ledger-loading hidden"><span class="loading-spinner"></span> Loading register...</div></div>
             </section>
             <button class="back-to-payment" type="button" data-page="payment"><i data-lucide="arrow-left"></i> Back to payment form</button>
