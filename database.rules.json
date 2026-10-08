@@ -1,13 +1,13 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true,
+    ".read": false,
+    ".write": false,
     "payments": {
       "$month": {
         ".read": "auth != null",
-        "$paymentId": {
-          ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid) && (!newData.exists() || newData.child('uid').val() === auth.uid)",
-          ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'name', 'amount', 'paidAt', 'confirmed']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('paidAt').isNumber() && newData.child('confirmed').val() === true)"
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists()",
+          ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'name', 'amount', 'paidAt', 'confirmed']) && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('paidAt').isNumber() && newData.child('confirmed').val() === true)"
         }
       }
     }
