@@ -45,9 +45,18 @@
               </div>
               <form id="auth-form" novalidate>
                 <label id="name-field" class="field hidden" for="display-name">Your name<input id="display-name" name="name" type="text" autocomplete="name" placeholder="e.g. Alex Morgan"></label>
+                <fieldset id="member-group-field" class="member-group-field hidden" aria-describedby="group-help">
+                  <legend>Your community group</legend>
+                  <div class="member-group-options">
+                    <label><input type="radio" name="memberGroup" value="state"><span>State</span></label>
+                    <label><input type="radio" name="memberGroup" value="central"><span>Central</span></label>
+                    <label><input type="radio" name="memberGroup" value="sky"><span>Sky</span></label>
+                  </div>
+                  <small id="group-help">Choose the register your membership belongs to.</small>
+                </fieldset>
                 <label class="field" for="email">Email address<input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
                 <label class="field" for="password">Password<input id="password" name="password" type="password" autocomplete="current-password" placeholder="At least 6 characters" minlength="6" required></label>
-                <label class="field" for="access-code">Community access code<span class="input-with-icon"><i data-lucide="key-round"></i><input id="access-code" name="accessCode" type="password" autocomplete="off" placeholder="Enter your access code" required></span></label>
+                <label class="field" for="access-code">Community access code<span class="input-with-icon"><i data-lucide="key-round"></i><input id="access-code" name="accessCode" type="password" autocomplete="off" placeholder="Enter your access code" required></span><small class="access-code-hint">Your community code: <strong>GodiaHouse</strong></small></label>
                 <p id="auth-message" class="form-message" aria-live="polite"></p>
                 <button id="auth-submit" class="button button-primary auth-submit" type="submit"><span>Sign in securely</span><i data-lucide="arrow-right"></i></button>
               </form>
@@ -82,6 +91,7 @@
                   <button id="payment-submit" class="button button-primary payment-submit" type="submit"><span>Review &amp; confirm payment</span><i data-lucide="arrow-up-right"></i></button>
                 </form>
                 <p class="panel-security"><i data-lucide="shield-check"></i> Your confirmation is recorded with the date and your account.</p>
+                <blockquote class="scripture-note"><p>Good Service</p><cite>Happy Community</cite></blockquote>
               </section>
               <aside class="month-aside">
                 <div class="month-feature"><div class="month-feature-top"><span class="live-label"><span class="status-dot"></span> LIVE REGISTER</span><i data-lucide="activity"></i></div><span class="month-label">CURRENT MONTH</span><h2 id="month-aside-label">This month</h2><div class="month-stat"><strong id="month-total">0</strong><span>verified payments</span></div><div class="month-rule"></div><div class="month-footer"><i data-lucide="users-round"></i><span id="member-count">Community register</span></div></div>
@@ -92,6 +102,12 @@
           <div id="ledger-page" class="page-content hidden">
             <section class="ledger-panel surface-panel">
               <div class="ledger-heading"><div><span class="section-index">02 / COMMUNITY</span><h2>Payment register</h2><p>Confirmed electricity token payments for <strong id="ledger-month-inline"></strong>.</p></div><div class="month-navigation"><button id="previous-month" class="icon-button" type="button" aria-label="Previous month" title="Previous month"><i data-lucide="chevron-left"></i></button><span id="ledger-month-title"></span><button id="next-month" class="icon-button" type="button" aria-label="Next month" title="Next month"><i data-lucide="chevron-right"></i></button></div></div>
+              <nav class="register-filters" aria-label="Choose a member register">
+                <button class="register-filter active" type="button" data-register="all" aria-pressed="true">All</button>
+                <button class="register-filter" type="button" data-register="state" aria-pressed="false">State</button>
+                <button class="register-filter" type="button" data-register="central" aria-pressed="false">Central</button>
+                <button class="register-filter" type="button" data-register="sky" aria-pressed="false">Sky</button>
+              </nav>
               <div class="ledger-summary"><span><span class="status-dot"></span><strong id="ledger-total">0 MEMBERS VERIFIED</strong></span><span class="ledger-month-total"><span>TOTAL PAID THIS MONTH</span><strong id="ledger-month-amount">KES 0.00</strong></span></div>
               <div class="ledger-table-wrap"><table class="ledger-table"><thead><tr><th>COMMUNITY MEMBER</th><th>DATE &amp; TIME</th><th>AMOUNT PAID</th><th>STATUS</th></tr></thead><tbody id="ledger-rows"></tbody></table><div id="ledger-empty" class="ledger-empty hidden"><span class="empty-icon"><i data-lucide="notebook-text"></i></span><strong>No payments recorded yet</strong><span>Confirmed payments for this month will appear here.</span></div><div id="ledger-loading" class="ledger-loading hidden"><span class="loading-spinner"></span> Loading register...</div></div>
             </section>
