@@ -71,6 +71,17 @@ button:focus-visible, input:focus-visible { outline: 3px solid #7cbb91; outline-
 .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; margin: 24px 0 21px; padding: 4px; border-radius: 9px; background: #edf1ec; }
 .auth-tab { padding: 9px; border: 0; border-radius: 6px; color: #718076; background: transparent; font-size: 12px; font-weight: 600; cursor: pointer; }
 .auth-tab.active { color: var(--ink); background: #fff; box-shadow: 0 1px 5px #20332415; }
+.member-group-field { min-width: 0; margin: 0; padding: 0; border: 0; }
+.member-group-field legend { margin-bottom: 8px; color: #526258; font-size: 11px; font-weight: 600; }
+.member-group-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.member-group-options label { position: relative; cursor: pointer; }
+.member-group-options input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.member-group-options label span { min-height: 38px; display: grid; place-items: center; border: 1px solid #e0e7df; border-radius: 7px; color: #68776c; background: rgba(255,255,255,.79); font-size: 11px; transition: .18s ease; }
+.member-group-options input:checked + span { border-color: #78a989; color: var(--green-deep); background: #eaf4eb; box-shadow: inset 0 0 0 1px #78a989; }
+.member-group-options input:focus-visible + span { outline: 3px solid #7cbb91; outline-offset: 3px; }
+.member-group-field > small, .access-code-hint { color: #89958c; font-size: 9px; font-weight: 400; }
+.member-group-field > small { display: block; margin-top: 7px; }
+.access-code-hint strong { color: var(--green-deep); font-weight: 700; }
 #auth-form { display: grid; gap: 13px; }
 .field { display: grid; gap: 7px; color: #526258; font-size: 11px; font-weight: 600; }
 .field input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid #e0e7df; border-radius: 7px; color: var(--ink); background: rgba(255,255,255,.79); font-size: 12px; font-weight: 400; transition: border-color .18s ease, box-shadow .18s ease; }
@@ -143,6 +154,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid #7cbb91; outline-
 .payment-submit { justify-self: start; min-width: 220px; min-height: 43px; }
 .panel-security { display: flex; align-items: center; gap: 6px; margin: 21px 0 0; color: #87948a; font-size: 9px; }
 .panel-security svg { width: 13px; height: 13px; color: var(--green); }
+.scripture-note { position: relative; margin: 20px 0 0; padding: 15px 17px 14px 19px; border-left: 3px solid var(--orange); background: linear-gradient(100deg, #f5f0e8, #f8f8f3); }
+.scripture-note::before { position: absolute; top: 4px; right: 12px; color: #dd805433; font: 700 46px/1 Georgia, serif; content: '\201C'; }
+.scripture-note p { position: relative; max-width: 420px; margin: 0; color: #264b39; font: italic 600 17px/1.45 Georgia, serif; }
+.scripture-note cite { display: block; margin-top: 8px; color: #78867b; font-size: 9px; font-style: normal; font-weight: 700; letter-spacing: .7px; }
 .month-aside { display: flex; flex-direction: column; gap: 12px; }
 .month-feature { position: relative; overflow: hidden; min-height: 230px; padding: 22px 23px 18px; border-radius: 11px; color: #fff; background: linear-gradient(145deg, #176b49, #124c39); box-shadow: 0 9px 25px #1f624333; }
 .month-feature::after { position: absolute; right: -62px; bottom: -94px; width: 225px; height: 225px; border: 1px solid #ffffff20; border-radius: 50%; box-shadow: 0 0 0 27px #ffffff08, 0 0 0 55px #ffffff07; content: ''; }
@@ -174,6 +189,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid #7cbb91; outline-
 .ledger-summary .ledger-month-total { display: grid; justify-items: end; gap: 3px; }
 .ledger-month-total > span { color: #89948b; font-size: 8px; font-weight: 700; letter-spacing: .8px; }
 .ledger-summary .ledger-month-total > strong { color: var(--green-deep); font: 700 14px var(--font-display); letter-spacing: 0; }
+.register-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 0 27px; padding: 4px; border-bottom: 1px solid #edf0eb; background: #f3f6f1; }
+.register-filter { min-height: 34px; border: 0; border-radius: 5px; color: #758278; background: transparent; font-size: 10px; font-weight: 600; cursor: pointer; }
+.register-filter:hover { color: var(--green-deep); background: #e9efe8; }
+.register-filter.active { color: #fff; background: var(--green); box-shadow: 0 2px 6px #18764e24; }
 .ledger-table-wrap { position: relative; min-height: 205px; }
 .ledger-table { width: 100%; border-collapse: collapse; text-align: left; }
 .ledger-table th { padding: 13px 18px; color: #97a198; font-size: 8px; font-weight: 700; letter-spacing: .9px; }
