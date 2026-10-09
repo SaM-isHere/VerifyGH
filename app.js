@@ -141,6 +141,13 @@ function renderLedger(payments) {
 
   for (const payment of rows) {
     const row = document.createElement("tr");
+    if (payment.amount >= 500) {
+      row.classList.add("ledger-row--milestone");
+    } else if (payment.amount > 400) {
+      row.classList.add("ledger-row--progress");
+    } else if (payment.amount >= 400) {
+      row.classList.add("ledger-row--safe");
+    }
     const member = document.createElement("td");
     const memberWrap = document.createElement("div");
     memberWrap.className = "member-cell";
@@ -151,6 +158,15 @@ function renderLedger(payments) {
     memberName.className = "member-name";
     memberName.textContent = payment.name || "Community member";
     memberWrap.append(avatar, memberName);
+    if (payment.amount >= 500) {
+      const rewardBadge = document.createElement("span");
+      rewardBadge.className = "member-reward";
+      rewardBadge.setAttribute("role", "img");
+      rewardBadge.setAttribute("aria-label", `${money.format(500)} payment milestone`);
+      rewardBadge.title = `${money.format(500)} payment milestone`;
+      rewardBadge.innerHTML = '<i data-lucide="award"></i>';
+      memberWrap.append(rewardBadge);
+    }
     member.append(memberWrap);
 
     const dateCell = document.createElement("td");
