@@ -2,12 +2,19 @@
   "rules": {
     ".read": false,
     ".write": false,
+    "members": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && !data.exists()",
+        ".validate": "newData.hasChildren(['group']) && newData.child('group').isString() && (newData.child('group').val() === 'state' || newData.child('group').val() === 'central' || newData.child('group').val() === 'sky')"
+      }
+    },
     "payments": {
       "$month": {
         ".read": "auth != null",
-        "$uid": {
-          ".write": "auth != null && auth.uid === $uid && !data.exists()",
-          ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'name', 'amount', 'paidAt', 'confirmed']) && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('paidAt').isNumber() && newData.child('confirmed').val() === true)"
+        "$paymentId": {
+          ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid",
+          ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'name', 'amount', 'paidAt', 'confirmed']) && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('amount').isNumber() && newData.child('amount').val() > 0 && newData.child('paidAt').isNumber() && newData.child('confirmed').val() === true && (!newData.child('group').exists() || newData.child('group').val() === 'state' || newData.child('group').val() === 'central' || newData.child('group').val() === 'sky' || newData.child('group').val() === 'unassigned'))"
         }
       }
     }
