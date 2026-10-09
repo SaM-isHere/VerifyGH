@@ -1,15 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import {
+  browserLocalPersistence,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   getAuth,
   onAuthStateChanged,
+  setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   updateProfile,
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getDatabase, onValue, push, ref } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { get, getDatabase, onValue, push, ref, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 import { createIcons, icons } from "https://cdn.jsdelivr.net/npm/lucide@0.468.0/+esm";
 import { currencyCode, firebaseConfig } from "./firebase-config.js";
 
@@ -17,10 +19,11 @@ const COMMUNITY_CODE = "GodiaHouse";
 const firebaseConfigured = !Object.values(firebaseConfig).some((value) => typeof value === "string" && value.startsWith("YOUR_"));
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const authPersistenceReady = setPersistence(auth, browserLocalPersistence);
 const database = getDatabase(app);
 const money = new Intl.NumberFormat(undefined, { style: "currency", currency: currencyCode });
 const elements = Object.fromEntries([
-  "authView", "registerView", "authFooter", "signoutButton", "connectionLabel", "authForm", "authTitle", "authSubtitle", "authSubmit", "authMessage", "nameField", "displayName", "email", "password", "accessCode", "signinTab", "signupTab", "googleButton", "welcomeName", "currentDate", "paymentName", "paymentDate", "paymentForm", "amount", "confirmPayment", "paymentMessage", "paymentDialog", "dialogName", "dialogAmount", "dialogDate", "confirmSubmit", "cancelPayment", "monthAsideLabel", "monthTotal", "memberCount", "ledgerCount", "paymentPage", "ledgerPage", "ledgerRows", "ledgerEmpty", "ledgerLoading", "ledgerTotal", "ledgerMonthTitle", "ledgerMonthInline", "previousMonth", "nextMonth", "currencyPrefix", "year",
+  "authView", "registerView", "authFooter", "signoutButton", "connectionLabel", "authForm", "authTitle", "authSubtitle", "authSubmit", "authMessage", "nameField", "memberGroupField", "displayName", "email", "password", "accessCode", "signinTab", "signupTab", "googleButton", "welcomeName", "currentDate", "paymentName", "paymentDate", "paymentForm", "amount", "confirmPayment", "paymentMessage", "paymentDialog", "dialogName", "dialogAmount", "dialogDate", "confirmSubmit", "cancelPayment", "monthAsideLabel", "monthTotal", "memberCount", "ledgerCount", "paymentPage", "ledgerPage", "ledgerRows", "ledgerEmpty", "ledgerLoading", "ledgerTotal", "ledgerMonthTitle", "ledgerMonthInline", "previousMonth", "nextMonth", "currencyPrefix", "year",
 ].map((key) => [key, document.getElementById(key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`))]));
 
 let isSignUp = false;
@@ -28,6 +31,8 @@ let currentUser = null;
 let selectedMonth = monthKey(new Date());
 let stopListening = null;
 let pendingPayment = null;
+let currentGroup = "unassigned";
+let selectedRegister = "all";
 
 function monthKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
@@ -59,6 +64,8 @@ function setAuthMode(signUp) {
     ? "Create an account to verify token payments."
     : "Sign in to continue to your register.";
   elements.nameField.classList.toggle("hidden", !signUp);
+  elements.memberGroupField.classList.toggle("hidden", !signUp);
+  elements.memberGroupField.querySelectorAll("input").forEach((input) => { input.required = signUp; });
   elements.displayName.required = signUp;
   elements.password.autocomplete = signUp ? "new-password" : "current-password";
   elements.authSubmit.querySelector("span").textContent = signUp ? "Create account" : "Sign in securely";
@@ -75,16 +82,26 @@ function validateCommunityCode() {
     elements.accessCode.focus();
     return false;
   }
-  sessionStorage.setItem("communityAccessGranted", "yes");
+  localStorage.setItem("communityAccessGranted", "yes");
   return true;
+}
+
+function hasCommunityAccess() {
+  if (localStorage.getItem("communityAccessGranted") === "yes") return true;
+  if (sessionStorage.getItem("communityAccessGranted") === "yes") {
+    localStorage.setItem("communityAccessGranted", "yes");
+    return true;
+  }
+  return false;
 }
 
 function getMemberName(user = currentUser) {
   return user?.displayName?.trim() || user?.email?.split("@")[0] || "Community member";
 }
 
-function enterRegister(user) {
+function enterRegister(user, group = currentGroup) {
   currentUser = user;
+  currentGroup = group;
   sessionStorage.setItem("currentAccessUid", user.uid);
   elements.authView.classList.add("hidden");
   elements.authFooter.classList.add("hidden");
@@ -107,6 +124,7 @@ function leaveRegister() {
   stopListening = null;
   sessionStorage.removeItem("currentAccessUid");
   sessionStorage.removeItem("communityAccessGranted");
+  localStorage.removeItem("communityAccessGranted");
   elements.registerView.classList.add("hidden");
   elements.authFooter.classList.remove("hidden");
   elements.authView.classList.remove("hidden");
@@ -119,6 +137,7 @@ function renderLedger(payments) {
   const byMember = new Map();
   for (const [id, payment] of Object.entries(payments || {})) {
     if (payment.confirmed !== true || !Number.isFinite(Number(payment.amount)) || Number(payment.amount) <= 0) continue;
+    if (selectedRegister !== "all" && payment.group !== selectedRegister) continue;
     const uid = payment.uid || `legacy-${id}`;
     const prior = byMember.get(uid);
     if (prior) {
@@ -219,6 +238,7 @@ async function submitPayment() {
       amount,
       paidAt,
       confirmed: true,
+      group: currentGroup,
     });
     elements.paymentDialog.close();
     elements.paymentForm.reset();
@@ -244,15 +264,20 @@ elements.authForm.addEventListener("submit", async (event) => {
     return;
   }
   if (!elements.authForm.reportValidity() || !validateCommunityCode()) return;
+  const group = elements.authForm.elements.memberGroup?.value;
   elements.authSubmit.disabled = true;
   try {
+    await authPersistenceReady;
     if (isSignUp) {
+      currentGroup = group;
       const credential = await createUserWithEmailAndPassword(auth, elements.email.value.trim(), elements.password.value);
       await updateProfile(credential.user, { displayName: elements.displayName.value.trim() });
-      enterRegister(credential.user);
+      await set(ref(database, `members/${credential.user.uid}`), { group });
+      enterRegister(credential.user, group);
     } else {
       const credential = await signInWithEmailAndPassword(auth, elements.email.value.trim(), elements.password.value);
-      enterRegister(credential.user);
+      const memberSnapshot = await get(ref(database, `members/${credential.user.uid}/group`));
+      enterRegister(credential.user, memberSnapshot.val() || "unassigned");
     }
   } catch (error) {
     const friendly = {
@@ -276,9 +301,20 @@ async function signInWithProvider(provider) {
     return;
   }
   if (!validateCommunityCode()) return;
+  if (isSignUp && !elements.authForm.elements.memberGroup.value) {
+    announce(elements.authMessage, "Choose your community group before continuing with Google.");
+    return;
+  }
   try {
+    await authPersistenceReady;
+    const requestedGroup = isSignUp ? elements.authForm.elements.memberGroup.value : "unassigned";
+    if (isSignUp) currentGroup = requestedGroup;
     const result = await signInWithPopup(auth, provider);
-    enterRegister(result.user);
+    const memberRef = ref(database, `members/${result.user.uid}`);
+    const memberSnapshot = await get(memberRef);
+    const group = memberSnapshot.child("group").val() || requestedGroup;
+    if (!memberSnapshot.exists() && isSignUp) await set(memberRef, { group });
+    enterRegister(result.user, group);
   } catch (error) {
     announce(elements.authMessage, error.code === "auth/popup-closed-by-user" ? "The sign-in window was closed before finishing." : error.message);
   }
@@ -317,6 +353,16 @@ document.querySelectorAll("[data-page]").forEach((button) => button.addEventList
   refreshIcons();
 }));
 
+document.querySelectorAll("[data-register]").forEach((button) => button.addEventListener("click", () => {
+  selectedRegister = button.dataset.register;
+  document.querySelectorAll("[data-register]").forEach((filter) => {
+    const selected = filter === button;
+    filter.classList.toggle("active", selected);
+    filter.setAttribute("aria-pressed", String(selected));
+  });
+  listenToMonth(selectedMonth);
+}));
+
 elements.previousMonth.addEventListener("click", () => {
   const date = monthDate(selectedMonth);
   date.setMonth(date.getMonth() - 1);
@@ -329,13 +375,21 @@ elements.nextMonth.addEventListener("click", () => {
 });
 
 if (firebaseConfigured) {
-  onAuthStateChanged(auth, async (user) => {
-    if (user && sessionStorage.getItem("communityAccessGranted") === "yes") {
-      enterRegister(user);
+  authPersistenceReady.then(() => onAuthStateChanged(auth, async (user) => {
+    if (user && hasCommunityAccess()) {
+      try {
+        const memberSnapshot = await get(ref(database, `members/${user.uid}/group`));
+        enterRegister(user, memberSnapshot.val() || "unassigned");
+      } catch (error) {
+        elements.connectionLabel.textContent = "Check database rules";
+        announce(elements.authMessage, `Could not restore your member group: ${error.message}`);
+      }
     } else {
-      if (user) await signOut(auth);
       leaveRegister();
     }
+  })).catch((error) => {
+    elements.connectionLabel.textContent = "Persistence unavailable";
+    announce(elements.authMessage, `Persistent sign-in could not be enabled: ${error.message}`);
   });
 } else {
   elements.connectionLabel.textContent = "Setup required";
